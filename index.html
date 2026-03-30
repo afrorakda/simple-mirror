@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Simple Mirror - Fridge Combo</title>
+    
+    <link rel="apple-touch-icon" href="image_44.png">
+    <link rel="icon" type="image/png" href="image_44.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <style>
         :root {
             --bg: #fff;
@@ -23,15 +29,15 @@
             width: 100%;
             height: 100%;
             background-color: var(--bg);
-            font-family: -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            /* iOSのSafeArea対応 */
+            /* iOS Safari ツールバー/ノッチ対策 */
             padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* 鏡のメインエリア */
         #mirror-frame {
             flex: 1;
             display: flex;
@@ -40,7 +46,8 @@
             padding: 20px 20px 10px 20px;
             background-color: var(--bg);
             cursor: pointer;
-            transition: padding 0.3s ease;
+            overflow: hidden;
+            position: relative;
         }
 
         video {
@@ -48,21 +55,31 @@
             height: 100%;
             object-fit: cover;
             border-radius: var(--radius);
-            transform: scaleX(-1);
+            transform: scaleX(-1); /* 鏡像反転 */
             background-color: var(--accent);
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            
+            /* iOS Fix */
             -webkit-appearance: none;
+            -webkit-text-fill-color: var(--main);
             opacity: 1 !important;
         }
 
-        /* フッター：ボタンが隠れないよう調整 */
+        #status {
+            position: absolute;
+            color: var(--main);
+            font-weight: bold;
+            text-align: center;
+            z-index: 10;
+            padding: 20px;
+        }
+
         footer {
             width: 100%;
             padding: 10px 0 15px 0;
             text-align: center;
             background-color: var(--bg);
             margin-bottom: env(safe-area-inset-bottom);
-            transition: opacity 0.3s ease;
         }
 
         .kofi-button {
@@ -70,12 +87,11 @@
             text-decoration: none;
             color: var(--main);
             background: var(--accent);
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: var(--radius);
             font-weight: bold;
-            font-size: 14px;
+            font-size: 12px;
             margin-bottom: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
         .credits {
@@ -84,7 +100,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* フルスクリーン時のスタイル切り替え */
+        /* フルスクリーン時のスタイル変更 */
         body.is-fullscreen footer {
             display: none;
         }
@@ -93,24 +109,18 @@
         }
         body.is-fullscreen video {
             border-radius: 0;
-        }
-
-        #status {
-            position: absolute;
-            color: var(--main);
-            font-weight: bold;
-            z-index: 10;
+            box-shadow: none;
         }
     </style>
 </head>
 <body>
 
     <div id="mirror-frame" onclick="toggleFullScreen()">
-        <div id="status">Tap to start mirror</div>
+        <div id="status">Tap to activate mirror</div>
         <video id="video" autoplay playsinline></video>
     </div>
 
-    <footer id="footer">
+    <footer>
         <a href="https://ko-fi.com/afrorakda" class="kofi-button">☕️buy me a coffee</a>
         <div class="credits">No login / No tracking / No ads / Browser only Privacy Policy / afrorakda © 2026</div>
     </footer>
@@ -132,8 +142,8 @@
                 video.srcObject = stream;
                 statusText.style.display = 'none';
             } catch (err) {
-                statusText.innerText = "Camera access required.";
-                console.error(err);
+                statusText.innerText = "Camera access required for mirror.";
+                console.error("Camera Error:", err);
             }
         }
 
@@ -142,8 +152,8 @@
                 document.documentElement.requestFullscreen().then(() => {
                     body.classList.add('is-fullscreen');
                 }).catch(e => {
-                    // Safari等でフルスクリーンAPIが制限されている場合の代替処理
-                    startMirror();
+                    // フルスクリーン失敗時もカメラは継続
+                    console.log("Fullscreen not available");
                 });
             } else {
                 if (document.exitFullscreen) {
@@ -154,16 +164,17 @@
             }
         }
 
-        // フルスクリーン状態の変更を監視（ESCキー等での解除対策）
+        // ページロード時およびタブ復帰時に起動
+        window.addEventListener('load', startMirror);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') startMirror();
+        });
+
+        // フルスクリーン解除のイベント監視 (エスケープキー等対策)
         document.addEventListener('fullscreenchange', () => {
             if (!document.fullscreenElement) {
                 body.classList.remove('is-fullscreen');
             }
-        });
-
-        window.addEventListener('load', startMirror);
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') startMirror();
         });
     </script>
 </body>
