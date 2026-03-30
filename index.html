@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mirror Max - Fridge Combo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Simple Mirror - Fridge Combo</title>
     <style>
         :root {
             --bg: #fff;
             --main: #333;
-            --accent: #eee;
+            --accent: #fafafa;
             --radius: 15px;
         }
 
@@ -23,35 +23,31 @@
             width: 100%;
             height: 100%;
             background-color: var(--bg);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, sans-serif;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
         }
 
-        /* Mirror Container (The Light Frame) */
-        #mirror-container {
-            position: relative;
-            width: calc(100% - 30px); /* 15px margin each side */
-            height: calc(100% - 100px); /* Leave space for footer */
-            background: #fff;
-            border-radius: var(--radius);
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        /* 鏡のメインコンテナ（白い縁を確保） */
+        #mirror-frame {
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px; /* この余白がライト代わりになる */
+            background-color: var(--bg);
+            cursor: pointer;
         }
 
         video {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1); /* Critical: Flip for mirror effect */
+            object-fit: cover; /* 歪み防止 */
             border-radius: var(--radius);
+            transform: scaleX(-1); /* 鏡像反転 */
             background-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             
             /* iOS Fix */
             -webkit-appearance: none;
@@ -59,80 +55,88 @@
             opacity: 1 !important;
         }
 
-        /* Error Message Style */
         #status {
             position: absolute;
             color: var(--main);
-            text-align: center;
-            padding: 20px;
             font-weight: bold;
-            z-index: 1;
+            text-align: center;
+            z-index: 10;
         }
 
+        /* フッター（光源を邪魔しないよう極限までシンプルに） */
         footer {
-            height: 60px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            color: var(--main);
+            padding: 10px 0 20px 0;
             text-align: center;
+            background-color: var(--bg);
         }
 
         .kofi-button {
-            margin-bottom: 5px;
+            display: inline-block;
             text-decoration: none;
             color: var(--main);
             background: var(--accent);
-            padding: 5px 15px;
+            padding: 8px 16px;
             border-radius: var(--radius);
             font-weight: bold;
             font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .credits {
+            font-size: 9px;
+            color: #999; /* 鏡の邪魔をしないよう薄く */
+            letter-spacing: 0.5px;
         }
     </style>
 </head>
 <body>
 
-    <div id="mirror-container">
-        <div id="status">Allow camera access to use mirror.</div>
+    <div id="mirror-frame" onclick="toggleFullScreen()">
+        <div id="status">Tap to start mirror</div>
         <video id="video" autoplay playsinline></video>
     </div>
 
     <footer>
         <a href="https://ko-fi.com/afrorakda" class="kofi-button">☕️buy me a coffee</a>
-        <div>No login / No tracking / No ads / Browser only Privacy Policy / afrorakda © 2026</div>
+        <div class="credits">No login / No tracking / No ads / Browser only Privacy Policy / afrorakda © 2026</div>
     </footer>
 
     <script>
         const video = document.getElementById('video');
         const statusText = document.getElementById('status');
 
-        async function initMirror() {
+        async function startMirror() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
                         facingMode: "user",
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
                     } 
                 });
                 video.srcObject = stream;
                 statusText.style.display = 'none';
             } catch (err) {
-                console.error("Error accessing camera: ", err);
-                statusText.innerText = "Camera access denied or not supported.";
+                statusText.innerText = "Camera access required.";
+                console.error(err);
             }
         }
 
-        // Initialize on load
-        window.addEventListener('load', initMirror);
-
-        // Visibility Change - Restart camera if user tabs back
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                initMirror();
+        // フルスクリーン切り替え（没入感向上）
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
             }
+        }
+
+        // 初回ロード時および復帰時に起動
+        window.addEventListener('load', startMirror);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') startMirror();
         });
     </script>
 </body>
