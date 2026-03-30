@@ -27,47 +27,42 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            /* iOSのSafeArea対応 */
+            padding-top: env(safe-area-inset-top);
         }
 
-        /* 鏡のメインコンテナ（白い縁を確保） */
+        /* 鏡のメインエリア */
         #mirror-frame {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px; /* この余白がライト代わりになる */
+            padding: 20px 20px 10px 20px;
             background-color: var(--bg);
             cursor: pointer;
+            transition: padding 0.3s ease;
         }
 
         video {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* 歪み防止 */
+            object-fit: cover;
             border-radius: var(--radius);
-            transform: scaleX(-1); /* 鏡像反転 */
+            transform: scaleX(-1);
             background-color: var(--accent);
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            
-            /* iOS Fix */
             -webkit-appearance: none;
-            -webkit-text-fill-color: var(--main);
             opacity: 1 !important;
         }
 
-        #status {
-            position: absolute;
-            color: var(--main);
-            font-weight: bold;
-            text-align: center;
-            z-index: 10;
-        }
-
-        /* フッター（光源を邪魔しないよう極限までシンプルに） */
+        /* フッター：ボタンが隠れないよう調整 */
         footer {
-            padding: 10px 0 20px 0;
+            width: 100%;
+            padding: 10px 0 15px 0;
             text-align: center;
             background-color: var(--bg);
+            margin-bottom: env(safe-area-inset-bottom);
+            transition: opacity 0.3s ease;
         }
 
         .kofi-button {
@@ -75,17 +70,36 @@
             text-decoration: none;
             color: var(--main);
             background: var(--accent);
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: var(--radius);
             font-weight: bold;
-            font-size: 12px;
+            font-size: 14px;
             margin-bottom: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
         .credits {
             font-size: 9px;
-            color: #999; /* 鏡の邪魔をしないよう薄く */
+            color: #999;
             letter-spacing: 0.5px;
+        }
+
+        /* フルスクリーン時のスタイル切り替え */
+        body.is-fullscreen footer {
+            display: none;
+        }
+        body.is-fullscreen #mirror-frame {
+            padding: 0;
+        }
+        body.is-fullscreen video {
+            border-radius: 0;
+        }
+
+        #status {
+            position: absolute;
+            color: var(--main);
+            font-weight: bold;
+            z-index: 10;
         }
     </style>
 </head>
@@ -96,7 +110,7 @@
         <video id="video" autoplay playsinline></video>
     </div>
 
-    <footer>
+    <footer id="footer">
         <a href="https://ko-fi.com/afrorakda" class="kofi-button">☕️buy me a coffee</a>
         <div class="credits">No login / No tracking / No ads / Browser only Privacy Policy / afrorakda © 2026</div>
     </footer>
@@ -104,6 +118,7 @@
     <script>
         const video = document.getElementById('video');
         const statusText = document.getElementById('status');
+        const body = document.body;
 
         async function startMirror() {
             try {
@@ -122,18 +137,30 @@
             }
         }
 
-        // フルスクリーン切り替え（没入感向上）
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(e => {});
+                document.documentElement.requestFullscreen().then(() => {
+                    body.classList.add('is-fullscreen');
+                }).catch(e => {
+                    // Safari等でフルスクリーンAPIが制限されている場合の代替処理
+                    startMirror();
+                });
             } else {
                 if (document.exitFullscreen) {
-                    document.exitFullscreen();
+                    document.exitFullscreen().then(() => {
+                        body.classList.remove('is-fullscreen');
+                    });
                 }
             }
         }
 
-        // 初回ロード時および復帰時に起動
+        // フルスクリーン状態の変更を監視（ESCキー等での解除対策）
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                body.classList.remove('is-fullscreen');
+            }
+        });
+
         window.addEventListener('load', startMirror);
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') startMirror();
