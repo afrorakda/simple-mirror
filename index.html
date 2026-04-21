@@ -5,177 +5,232 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Simple Mirror</title>
     
+    <link rel="icon" href="image_44.png">
     <link rel="apple-touch-icon" href="image_44.png">
-    <link rel="icon" type="image/png" href="image_44.png">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
+
     <style>
         :root {
-            --bg: #fff;
             --main: #333;
-            --accent: #fafafa;
+            --bg: #fff;
+            --accent: #eee;
+            --input-bg: #fafafa;
             --radius: 15px;
         }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--main);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px) 20px;
+            overflow: hidden;
         }
 
-        body, html {
-            margin: 0;
-            padding: 0;
+        .container {
             width: 100%;
-            height: 100%;
-            background-color: var(--bg);
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            overflow: hidden;
+            max-width: 420px;
             display: flex;
             flex-direction: column;
-            /* iOS Safari ツールバー/ノッチ対策 */
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
         }
 
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            z-index: 10;
+        }
+
+        h1 { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.5px; }
+        
+        .hub-link {
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--main);
+            background: var(--accent);
+            padding: 8px 14px;
+            border-radius: 12px;
+        }
+
+        .subtitle { font-size: 0.85rem; color: #999; font-weight: 700; margin-bottom: 20px; text-align: left; }
+
+        /* Mirror Frame */
         #mirror-frame {
             flex: 1;
+            position: relative;
+            background: var(--input-bg);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 2px solid var(--accent);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px 20px 10px 20px;
-            background-color: var(--bg);
             cursor: pointer;
-            overflow: hidden;
-            position: relative;
         }
 
         video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: var(--radius);
-            transform: scaleX(-1); /* 鏡像反転 */
-            background-color: var(--accent);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            
-            /* iOS Fix */
+            transform: scaleX(-1); /* Mirror Flip */
             -webkit-appearance: none;
-            -webkit-text-fill-color: var(--main);
             opacity: 1 !important;
         }
 
-        #status {
+        #status-msg {
             position: absolute;
-            color: var(--main);
-            font-weight: bold;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #ccc;
             text-align: center;
-            z-index: 10;
             padding: 20px;
         }
 
-        footer {
-            width: 100%;
-            padding: 10px 0 15px 0;
-            text-align: center;
-            background-color: var(--bg);
-            margin-bottom: env(safe-area-inset-bottom);
+        /* Fullscreen UI Adjustment */
+        body.is-fullscreen { padding: 0; }
+        body.is-fullscreen .container { max-width: none; height: 100vh; }
+        body.is-fullscreen header, 
+        body.is-fullscreen .subtitle, 
+        body.is-fullscreen .footer-btns, 
+        body.is-fullscreen footer { display: none; }
+        body.is-fullscreen #mirror-frame { border-radius: 0; border: none; }
+
+        /* Footer & Buttons */
+        .footer-btns { margin-top: 20px; text-align: center; z-index: 10; }
+        
+        .kofi-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--main); color: #fff; width: 100%; max-width: 320px;
+            padding: 16px; border-radius: var(--radius);
+            text-decoration: none; font-weight: 900; font-size: 0.9rem; margin-bottom: 12px;
+            -webkit-text-fill-color: #fff;
+        }
+        
+        .home-btn {
+            display: block; width: 100%; max-width: 320px; margin: 0 auto; 
+            background: var(--accent); color: var(--main); border: none; 
+            padding: 12px; border-radius: var(--radius); font-weight: 800; font-size: 0.85rem; cursor: pointer;
         }
 
-        .kofi-button {
-            display: inline-block;
-            text-decoration: none;
-            color: var(--main);
-            background: var(--accent);
-            padding: 8px 16px;
-            border-radius: var(--radius);
-            font-weight: bold;
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
+        footer { padding: 20px 0; text-align: center; font-size: 0.7rem; color: #bbb; line-height: 1.6; font-weight: 600; }
+        footer a { color: inherit; text-decoration: underline; }
 
-        .credits {
-            font-size: 9px;
-            color: #999;
-            letter-spacing: 0.5px;
+        /* Modal */
+        #modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000;
+            backdrop-filter: blur(4px);
         }
-
-        /* フルスクリーン時のスタイル変更 */
-        body.is-fullscreen footer {
-            display: none;
+        .modal-content {
+            background: #fff; width: 90%; max-width: 320px; padding: 35px;
+            border-radius: var(--radius); text-align: left; position: relative;
         }
-        body.is-fullscreen #mirror-frame {
-            padding: 0;
-        }
-        body.is-fullscreen video {
-            border-radius: 0;
-            box-shadow: none;
-        }
+        .close-x { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #ccc; cursor: pointer; font-weight: bold; }
     </style>
 </head>
-<body>
+<body id="body">
+
+<div class="container">
+    <header>
+        <h1>Simple Mirror</h1>
+        <a href="https://afrorakda.github.io/" class="hub-link">🏠 Hub</a>
+    </header>
+    <p class="subtitle">Minimalist selfie check. Tap to focus.</p>
 
     <div id="mirror-frame" onclick="toggleFullScreen()">
-        <div id="status">Tap to activate mirror</div>
-        <video id="video" autoplay playsinline></video>
+        <div id="status-msg">Tap to activate camera</div>
+        <video id="video" autoplay playsinline muted></video>
     </div>
 
-    <footer>
-        <a href="https://ko-fi.com/afrorakda" class="kofi-button">☕️buy me a coffee</a>
-        <div class="credits">No login / No tracking / No ads / Browser only Privacy Policy / afrorakda © 2026</div>
+    <div class="footer-btns">
+        <a href="https://ko-fi.com/afrorakda" target="_blank" class="kofi-btn">☕️buy me a coffee</a>
+        <button class="home-btn" onclick="showModal()">Add to Home Screen</button>
+    </div>
+
+    <footer id="dynamicFooter">
+        No login / No tracking / No ads / Browser only<br>
+        <a href="https://afrorakda.com/privacy/">Privacy Policy</a> / afrorakda © 2026
     </footer>
+</div>
 
-    <script>
-        const video = document.getElementById('video');
-        const statusText = document.getElementById('status');
-        const body = document.body;
+<div id="modal" onclick="hideModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="close-x" onclick="hideModal()">×</span>
+        <h3 style="margin-bottom: 10px; font-weight: 900;">📱 Install</h3>
+        <p style="margin-bottom: 20px; color: #999; font-weight: 700; font-size: 0.85rem;">Add to your home screen.</p>
+        <div style="font-size: 0.9rem; line-height: 1.6; font-weight: 700;">
+            <p>🍏 <strong>iPhone:</strong><br>Share > Add to Home Screen</p>
+            <p style="margin-top:10px;">🤖 <strong>Android:</strong><br>Menu (⋮) > Add to Home Screen</p>
+        </div>
+    </div>
+</div>
 
-        async function startMirror() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: "user",
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
-                    } 
-                });
-                video.srcObject = stream;
-                statusText.style.display = 'none';
-            } catch (err) {
-                statusText.innerText = "Camera access required for mirror.";
-                console.error("Camera Error:", err);
-            }
+<script>
+    const video = document.getElementById('video');
+    const statusMsg = document.getElementById('status-msg');
+    const body = document.getElementById('body');
+
+    async function initCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "user" } 
+            });
+            video.srcObject = stream;
+            statusMsg.style.display = 'none';
+        } catch (err) {
+            statusMsg.innerText = "Camera access denied.";
+            statusMsg.style.color = "#e74c3c";
         }
+    }
 
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().then(() => {
-                    body.classList.add('is-fullscreen');
-                }).catch(e => {
-                    // フルスクリーン失敗時もカメラは継続
-                    console.log("Fullscreen not available");
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen().then(() => {
-                        body.classList.remove('is-fullscreen');
-                    });
-                }
-            }
-        }
-
-        // ページロード時およびタブ復帰時に起動
-        window.addEventListener('load', startMirror);
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') startMirror();
-        });
-
-        // フルスクリーン解除のイベント監視 (エスケープキー等対策)
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) {
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().then(() => {
+                body.classList.add('is-fullscreen');
+            }).catch(() => {
+                // iOS doesn't support full document fullscreen, but we can simulate via CSS
+                body.classList.toggle('is-fullscreen');
+            });
+        } else {
+            document.exitFullscreen().then(() => {
                 body.classList.remove('is-fullscreen');
+            });
+        }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) body.classList.remove('is-fullscreen');
+    });
+
+    function showModal() { document.getElementById('modal').style.display = 'flex'; }
+    function hideModal() { document.getElementById('modal').style.display = 'none'; }
+
+    async function loadFooter() {
+        try {
+            const res = await fetch('footer.json');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.footerHtml) document.getElementById('dynamicFooter').innerHTML = data.footerHtml;
             }
-        });
-    </script>
+        } catch (e) {}
+    }
+
+    window.onload = () => {
+        initCamera();
+        loadFooter();
+    };
+
+    // Re-init on visibility change (for mobile battery saving)
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') initCamera();
+    });
+</script>
+
 </body>
 </html>
