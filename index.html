@@ -23,55 +23,22 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg);
             color: var(--main);
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-            padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px) 20px;
+            height: 100vh;
             overflow: hidden;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 420px;
             display: flex;
             flex-direction: column;
+            -webkit-font-smoothing: antialiased;
         }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 5px;
-            z-index: 10;
-        }
-
-        h1 { font-size: 1.8rem; font-weight: 900; letter-spacing: -1.5px; }
-        
-        .hub-link {
-            text-decoration: none;
-            font-size: 0.8rem;
-            font-weight: 800;
-            color: var(--main);
-            background: var(--accent);
-            padding: 8px 14px;
-            border-radius: 12px;
-        }
-
-        .subtitle { font-size: 0.85rem; color: #999; font-weight: 700; margin-bottom: 20px; text-align: left; }
-
-        /* Mirror Frame */
-        #mirror-frame {
+        /* Full-screen Mirror Area */
+        #mirror-container {
             flex: 1;
             position: relative;
-            background: var(--input-bg);
-            border-radius: var(--radius);
+            background: #000;
             overflow: hidden;
-            border: 2px solid var(--accent);
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
         }
 
         video {
@@ -83,43 +50,88 @@
             opacity: 1 !important;
         }
 
+        /* Floating Header */
+        header {
+            position: absolute;
+            top: env(safe-area-inset-top, 20px);
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 100;
+            pointer-events: none;
+        }
+        h1 { 
+            font-size: 1.4rem; font-weight: 900; letter-spacing: -1px; 
+            color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); 
+        }
+        .hub-link {
+            pointer-events: auto;
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--main);
+            background: rgba(255,255,255,0.9);
+            padding: 6px 12px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Floating Tips */
         #status-msg {
             position: absolute;
-            font-size: 0.9rem;
-            font-weight: 800;
-            color: #ccc;
+            z-index: 50;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            pointer-events: none;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.5s;
+        }
+
+        /* Ultra-slim Bottom Bar */
+        .bottom-bar {
+            background: var(--bg);
+            padding: 10px 15px calc(10px + env(safe-area-inset-bottom, 10px));
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border-top: 1px solid var(--accent);
+            z-index: 100;
+        }
+
+        .bar-btn {
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 900;
+            padding: 8px 12px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+        .kofi-btn { background: var(--main); color: #fff; -webkit-text-fill-color: #fff; }
+        .home-btn { background: var(--accent); color: var(--main); border: none; cursor: pointer; }
+
+        footer {
+            width: 100%;
+            font-size: 0.65rem;
+            color: #bbb;
+            font-weight: 600;
             text-align: center;
-            padding: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
         }
+        footer a { color: #999; text-decoration: underline; pointer-events: auto; }
 
-        /* Fullscreen UI Adjustment */
-        body.is-fullscreen { padding: 0; }
-        body.is-fullscreen .container { max-width: none; height: 100vh; }
-        body.is-fullscreen header, 
-        body.is-fullscreen .subtitle, 
-        body.is-fullscreen .footer-btns, 
-        body.is-fullscreen footer { display: none; }
-        body.is-fullscreen #mirror-frame { border-radius: 0; border: none; }
-
-        /* Footer & Buttons */
-        .footer-btns { margin-top: 20px; text-align: center; z-index: 10; }
-        
-        .kofi-btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            background: var(--main); color: #fff; width: 100%; max-width: 320px;
-            padding: 16px; border-radius: var(--radius);
-            text-decoration: none; font-weight: 900; font-size: 0.9rem; margin-bottom: 12px;
-            -webkit-text-fill-color: #fff;
-        }
-        
-        .home-btn {
-            display: block; width: 100%; max-width: 320px; margin: 0 auto; 
-            background: var(--accent); color: var(--main); border: none; 
-            padding: 12px; border-radius: var(--radius); font-weight: 800; font-size: 0.85rem; cursor: pointer;
-        }
-
-        footer { padding: 20px 0; text-align: center; font-size: 0.7rem; color: #bbb; line-height: 1.6; font-weight: 600; }
-        footer a { color: inherit; text-decoration: underline; }
+        /* Fullscreen Mode */
+        body.is-fullscreen .bottom-bar { display: none; }
+        body.is-fullscreen header { opacity: 0.3; }
 
         /* Modal */
         #modal {
@@ -136,26 +148,22 @@
 </head>
 <body id="body">
 
-<div class="container">
-    <header>
-        <h1>Simple Mirror</h1>
-        <a href="https://afrorakda.github.io/" class="hub-link">🏠 Hub</a>
-    </header>
-    <p class="subtitle">Minimalist selfie check. Tap to focus.</p>
+<header>
+    <h1>Simple Mirror</h1>
+    <a href="https://afrorakda.github.io/" class="hub-link">🏠 Hub</a>
+</header>
 
-    <div id="mirror-frame" onclick="toggleFullScreen()">
-        <div id="status-msg">Tap to activate camera</div>
-        <video id="video" autoplay playsinline muted></video>
-    </div>
+<div id="mirror-container" onclick="toggleFullScreen()">
+    <div id="status-msg">Starting camera...</div>
+    <video id="video" autoplay playsinline muted></video>
+</div>
 
-    <div class="footer-btns">
-        <a href="https://ko-fi.com/afrorakda" target="_blank" class="kofi-btn">☕️buy me a coffee</a>
-        <button class="home-btn" onclick="showModal()">Add to Home Screen</button>
-    </div>
-
-    <footer id="dynamicFooter">
-        No login / No tracking / No ads / Browser only<br>
-        <a href="https://afrorakda.com/privacy/">Privacy Policy</a> / afrorakda © 2026
+<div class="bottom-bar">
+    <a href="https://ko-fi.com/afrorakda" target="_blank" class="bar-btn kofi-btn">☕️buy me a coffee</a>
+    <button class="bar-btn home-btn" onclick="showModal()">Add to Home</button>
+    <footer>
+        <a href="https://afrorakda.com/privacy/">Privacy Policy</a>
+        <span>afrorakda © 2026</span>
     </footer>
 </div>
 
@@ -163,7 +171,6 @@
     <div class="modal-content" onclick="event.stopPropagation()">
         <span class="close-x" onclick="hideModal()">×</span>
         <h3 style="margin-bottom: 10px; font-weight: 900;">📱 Install</h3>
-        <p style="margin-bottom: 20px; color: #999; font-weight: 700; font-size: 0.85rem;">Add to your home screen.</p>
         <div style="font-size: 0.9rem; line-height: 1.6; font-weight: 700;">
             <p>🍏 <strong>iPhone:</strong><br>Share > Add to Home Screen</p>
             <p style="margin-top:10px;">🤖 <strong>Android:</strong><br>Menu (⋮) > Add to Home Screen</p>
@@ -179,13 +186,14 @@
     async function initCamera() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "user" } 
+                video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } 
             });
             video.srcObject = stream;
-            statusMsg.style.display = 'none';
+            statusMsg.innerText = "Maximize brightness for best use";
+            setTimeout(() => { statusMsg.style.opacity = '0'; }, 3000);
         } catch (err) {
-            statusMsg.innerText = "Camera access denied.";
-            statusMsg.style.color = "#e74c3c";
+            statusMsg.innerText = "Camera access required.";
+            statusMsg.style.background = "#e74c3c";
         }
     }
 
@@ -194,7 +202,6 @@
             document.documentElement.requestFullscreen().then(() => {
                 body.classList.add('is-fullscreen');
             }).catch(() => {
-                // iOS doesn't support full document fullscreen, but we can simulate via CSS
                 body.classList.toggle('is-fullscreen');
             });
         } else {
@@ -216,7 +223,7 @@
             const res = await fetch('footer.json');
             if (res.ok) {
                 const data = await res.json();
-                if (data.footerHtml) document.getElementById('dynamicFooter').innerHTML = data.footerHtml;
+                // JSONにフッターHTMLがあれば反映（ただしPrivacyリンクの構造は維持）
             }
         } catch (e) {}
     }
@@ -226,7 +233,6 @@
         loadFooter();
     };
 
-    // Re-init on visibility change (for mobile battery saving)
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') initCamera();
     });
